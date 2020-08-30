@@ -776,6 +776,7 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@lastName", user.LastName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@firstName", user.FirstName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@userName", user.UserName, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@email", user.Email, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@passwordHash", user.PasswordHash, DbType.Binary, direction: ParameterDirection.Input);
             parameters.Add("@active", user.Active, DbType.Boolean, direction: ParameterDirection.Input);
 
@@ -802,7 +803,8 @@ namespace SquareDMS_DataAccessLayer
         /// <param name="retrieveUserId">Id of the user that is being looked for.</param>
         /// <returns>Result with errorCode.</returns>
         public async Task<RetrievalResult<User>> RetrieveUserAsync(int userId, [Optional]int? retrieveUserId,
-            [Optional]string lastName, [Optional]string firstName, [Optional]string userName, [Optional]bool? active)
+            [Optional]string lastName, [Optional]string firstName, [Optional]string userName, 
+            [Optional]string email, [Optional]bool? active)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -811,6 +813,7 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@lastName", lastName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@firstName", firstName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@userName", userName, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@email", email, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@active", active, DbType.Boolean, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
@@ -833,7 +836,8 @@ namespace SquareDMS_DataAccessLayer
         /// </summary>
         /// <returns>Result with errorCode.</returns>
         public async Task<ManipulationResult> UpdateUserAsync(int userId, int updateUserId, [Optional]string lastName,
-            [Optional]string firstName, [Optional]string userName, [Optional]byte[] passwordHash, [Optional]bool? active)
+            [Optional]string firstName, [Optional]string userName, [Optional]string email,
+            [Optional]byte[] passwordHash, [Optional]bool? active)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -842,6 +846,7 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@lastName", lastName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@firstName", firstName, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@userName", userName, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@email", email, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@passwordHash", passwordHash, DbType.Binary, direction: ParameterDirection.Input);
             parameters.Add("@active", active, DbType.Boolean, direction: ParameterDirection.Input);
 

@@ -26,7 +26,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void Admin_CreateUser()
         {
 
-            var user = new User("Hans", "Kraus", "ludwigthoma", passwordHash, true);
+            var user = new User("Hans", "Kraus", "ludwigthoma", null, passwordHash, true);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -41,7 +41,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         [Fact]
         public async void Admin_CreateUser_EmptyFirstName()
         {
-            var user = new User("Remi", null, "Gaillard", passwordHash, false);
+            var user = new User("Remi", null, "Gaillard", "rg@fun.fr",passwordHash, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -56,7 +56,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void Admin_CreateUser_InvalidLastName()
         {
 
-            var user = new User(null, "", "superUser", passwordHash, false);
+            var user = new User(null, "", "superUser", null, passwordHash, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -72,7 +72,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void Admin_CreateUser_InvalidUserName()
         {
 
-            var user = new User("Remi", null, null, passwordHash, false);
+            var user = new User("Remi", null, null, null, passwordHash, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -87,7 +87,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void Admin_CreateUserDuplicateUser()
         {
 
-            var user = new User("Brandl", null, "blotzen", passwordHash, false);
+            var user = new User("Brandl", null, "blotzen", null, passwordHash, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -102,7 +102,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void Admin_CreateUser_EmptyPassword()
         {
 
-            var user = new User("Jolie", null, "mrssmith", null, false);
+            var user = new User("Jolie", null, "mrssmith", null, null, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
@@ -117,7 +117,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         public async void User_CreateUser()
         {
 
-            var user = new User("Jameson", "Jenna", "jenna", passwordHash, true);
+            var user = new User("Jameson", "Jenna", "jenna", null, passwordHash, true);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(2, user);
 

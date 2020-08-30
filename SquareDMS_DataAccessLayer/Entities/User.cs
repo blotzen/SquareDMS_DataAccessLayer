@@ -1,4 +1,6 @@
-﻿namespace SquareDMS_DataAccessLayer.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SquareDMS_DataAccessLayer.Entities
 {
     public class User : IEntity
     {
@@ -10,12 +12,13 @@
         /// <summary>
         /// Creates a new user
         /// </summary>
-        public User(string lastName, string firstName, string userName,
-            byte[] passwordHash, bool active)
+        public User(string lastName, string firstName, string userName, 
+            string email, byte[] passwordHash, bool active)
         {
             LastName = lastName;
             FirstName = firstName;
             UserName = userName;
+            Email = email;
             PasswordHash = passwordHash;
             Active = active;
         }
@@ -27,6 +30,8 @@
         public string FirstName { get; private set; }
 
         public string UserName { get; private set; }
+
+        public string Email { get; private set; }
 
         public byte[] PasswordHash { get; private set; }
 
