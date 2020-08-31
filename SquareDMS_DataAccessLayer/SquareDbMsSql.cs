@@ -48,8 +48,7 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@docType", doc.DocumentType, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@locked", doc.Locked, DbType.Boolean, direction: ParameterDirection.Input);
             parameters.Add("@discard", doc.Discard, DbType.Boolean, direction: ParameterDirection.Input);
-
-            parameters.Add("@name", doc.Name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@name", doc.Name, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@createdDocuments", DbType.Int32, direction: ParameterDirection.Output);
@@ -79,12 +78,12 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
 
             parameters.Add("@maxAccessLevel", maxAccessLevel ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@docId", docId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@creatorId", creator ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@docTypeId", docType ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@locked", locked ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
-            parameters.Add("@discard", discard ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@creatorId", creator, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docTypeId", docType, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@locked", locked, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@discard", discard, DbType.Boolean, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
@@ -110,11 +109,10 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@docTypeId", docType ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@locked", locked ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
-            parameters.Add("@discard", discard ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@docTypeId", docType, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@locked", locked, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@discard", discard, DbType.Boolean, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@updatedDocuments", DbType.Int32, direction: ParameterDirection.Output);
@@ -187,9 +185,8 @@ namespace SquareDMS_DataAccessLayer
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@name", docType.Name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@description", docType.Description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@name", docType.Name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", docType.Description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@createdDocumentTypes", DbType.Int32, direction: ParameterDirection.Output);
@@ -218,9 +215,9 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
 
-            parameters.Add("@docTypeId", docTypeId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@docTypeId", docTypeId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
@@ -246,9 +243,8 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@docTypeId", docTypeId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@updatedDocumentTypes", DbType.Int32, direction: ParameterDirection.Output);
@@ -276,7 +272,6 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@docTypeId", docTypeId, DbType.Int32, direction: ParameterDirection.Input);
-
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@deletedDocumentTypes", DbType.Int32, direction: ParameterDirection.Output);
 
@@ -295,9 +290,9 @@ namespace SquareDMS_DataAccessLayer
 
         #region FileFormat-Operations
         /// <summary>
-        /// 
+        /// Creates a new FileFormat
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Return value with error Code</returns>
         /// <exception cref="ArgumentNullException">FileFormat cant be null.</exception>
         public async Task<ManipulationResult> CreateFileFormatAsync(int userId, FileFormat fileFormat)
         {
@@ -308,8 +303,7 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@extension", fileFormat.Extension, DbType.StringFixedLength, direction: ParameterDirection.Input);
-
-            parameters.Add("@description", fileFormat.Description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", fileFormat.Description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@createdFileFormats", DbType.Int32, direction: ParameterDirection.Output);
@@ -336,10 +330,9 @@ namespace SquareDMS_DataAccessLayer
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@fileFormatId", fileFormatId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@extension", extension ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@fileFormatId", fileFormatId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@extension", extension, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
@@ -365,9 +358,8 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@fileFormatId", fileFormatId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@extension", extension ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@extension", extension, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@updatedFileFormats", DbType.Int32, direction: ParameterDirection.Output);
@@ -425,11 +417,8 @@ namespace SquareDMS_DataAccessLayer
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@name", group.Name ?? (object)DBNull.Value, DbType.StringFixedLength,
-                direction: ParameterDirection.Input);
-            parameters.Add("@description", group.Description ?? (object)DBNull.Value,
-                DbType.StringFixedLength, direction: ParameterDirection.Input);
-
+            parameters.Add("@name", group.Name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", group.Description, DbType.StringFixedLength, direction: ParameterDirection.Input);
             parameters.Add("@admin", group.Admin, DbType.Boolean, direction: ParameterDirection.Input);
             parameters.Add("@creator", group.Creator, DbType.Boolean, direction: ParameterDirection.Input);
 
@@ -458,15 +447,11 @@ namespace SquareDMS_DataAccessLayer
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@groupId", groupId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength,
-                direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value,
-                DbType.StringFixedLength, direction: ParameterDirection.Input);
-
-            parameters.Add("@admin", admin ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
-            parameters.Add("@creator", creator ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@groupId", groupId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@admin", admin, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@creator", creator, DbType.Boolean, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
@@ -494,14 +479,10 @@ namespace SquareDMS_DataAccessLayer
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@groupId", groupId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@name", name ?? (object)DBNull.Value, DbType.StringFixedLength,
-                direction: ParameterDirection.Input);
-            parameters.Add("@description", description ?? (object)DBNull.Value,
-                DbType.StringFixedLength, direction: ParameterDirection.Input);
-
-            parameters.Add("@admin", admin ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
-            parameters.Add("@creator", creator ?? (object)DBNull.Value, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@name", name, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@description", description, DbType.StringFixedLength, direction: ParameterDirection.Input);
+            parameters.Add("@admin", admin, DbType.Boolean, direction: ParameterDirection.Input);
+            parameters.Add("@creator", creator, DbType.Boolean, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@updatedGroups", DbType.Int32, direction: ParameterDirection.Output);
@@ -685,9 +666,8 @@ namespace SquareDMS_DataAccessLayer
             DynamicParameters parameters = new DynamicParameters();
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@groupId", groupId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@docId", docId ?? (object)DBNull.Value, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@groupId", groupId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
 
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
