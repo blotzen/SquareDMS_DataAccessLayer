@@ -1,14 +1,19 @@
 ﻿using System;
+using System.Globalization;
+using System.IO;
+using System.Threading;
 
 namespace SquareDMS_DataAccessLayer
 {
     class Program
     {
-        static void Main(string[] args)
+        static async System.Threading.Tasks.Task Main(string[] args)
         {
-            var db = new SquareDbMsSql("Server = 192.168.178.15; Database = Square_DMS; Integrated Security = True");
+            var file = File.ReadAllBytes(@"C:\Users\Administrator\Desktop\bigskript.pdf");
 
-            db.CreateDocumentVersionAsync(1, new Entities.DocumentVersion(1, 1, null));
+            var db = new SquareDbMsSql("Server = HPSERVER; Database = Square_DMS; Integrated Security = True");
+
+            await db.CreateDocumentVersionAsync(1, new Entities.DocumentVersion(1, 1, file));
         }
     }
 }

@@ -11,6 +11,7 @@ using System.IO;
 using System.Transactions;
 using System.Data.Common;
 using System.Data.SqlTypes;
+using System.Threading;
 
 namespace SquareDMS_DataAccessLayer
 {
@@ -293,41 +294,52 @@ namespace SquareDMS_DataAccessLayer
 
         #region DocumentVersion-Operations
         /// <summary>
-        /// Creates a new FileFormat
+        /// Creates a new FileFormat. Uses the byte[] and filestream with System.IO.
+        /// to place the file in the filestream area. Uses the SQL Server file handle.
         /// </summary>
         /// <returns>Return value with error Code</returns>
         /// <exception cref="ArgumentNullException">FileFormat cant be null.</exception>
-        public ManipulationResult CreateDocumentVersionAsync(int userId, DocumentVersion docVersion)
+        /// <exception cref="Exception"></exception>
+        public async Task<ManipulationResult> CreateDocumentVersionAsync(int userId, DocumentVersion docVersion)
         {
             if (docVersion is null)
                 throw new ArgumentNullException("docVersion", "Cant create null docVersion");
 
-            // do the prep work to insert the payload, await it.
-            var preparationResult = PreparePayloadInsert(userId, docVersion.DocumentId, docVersion.FileFormatId);
+            dynamic prepResult = null;
 
-            var filePath = preparationResult.FilePath;
-            var txContext = (byte[])preparationResult.TransactionId;
+            try
+            {
+                // do the prep work to insert the payload, await it.
+                prepResult = await PreparePayloadInsert(userId, docVersion.DocumentId, docVersion.FileFormatId);
 
-            SqlFileStream sqlFileStream = new SqlFileStream(filePath, txContext, FileAccess.Write);
+                SqlFileStream sqlFileStream = new SqlFileStream(prepResult.FilePath, prepResult.TransactionId, FileAccess.Write);
 
-            FileStream localFile = new FileStream(@"C:\Users\Franz\Desktop\tum-thesis-for-informatics-template.pdf", FileMode.Open, FileAccess.Read);
+                // writes from byte[] to filestream-stream
+                await sqlFileStream.WriteAsync(docVersion.FilestreamData);
+                sqlFileStream.Close();
 
-            localFile.CopyTo(sqlFileStream, 4096);
+                await prepResult.Transaction.CommitAsync();
 
-            preparationResult.Transaction.Commit();
-            preparationResult.DbConnection.Close();
-
-
-
-            return new ManipulationResult(0, new Operation(typeof(FileFormat), 0, OperationType.Create));
+                return new ManipulationResult(prepResult.ErrorCode, new Operation(typeof(DocumentVersion), 1, OperationType.Create)); // TODO immer returnen aber mit errorcode wenn fehler?
+            }
+            catch (Exception ex)
+            {
+                // log ex here
+                await prepResult.Transaction.RollbackAsync();
+                throw;
+            }
+            finally
+            {
+                await prepResult.DbConnection.CloseAsync();
+            }                    
         }
 
         /// <summary>
         /// Does the prep work, inserts a empty document version into the table and checks 
-        /// the paramters beforehand. Returns the open connection and the transaction.
+        /// the paramters beforehand. Returns the open connection and the uncommited transaction.
         /// </summary>
         /// <returns>ErrorCode, TransactionId, Transaction, DbConnection, FilePath</returns>
-        private dynamic PreparePayloadInsert(int userId, int docId, int fileFormatId) 
+        private async Task<dynamic> PreparePayloadInsert(int userId, int docId, int fileFormatId) 
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -343,41 +355,26 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@transactionContext", template_1, DbType.Binary, direction: ParameterDirection.Output, size: 16);
             parameters.Add("@filePath", template_2, DbType.String, direction: ParameterDirection.Output);
 
-            DbTransaction transaction = null;
             SqlConnection connection = new SqlConnection(_connectionString);
 
-            try
+            await connection.OpenAsync();
+            var transaction = await connection.BeginTransactionAsync();
+                
+            await connection.QueryAsync("[proc_create_document_version]", parameters, 
+                commandType: CommandType.StoredProcedure, transaction: transaction);
+
+            var errorCode = parameters.Get<int>("errorCode");
+            var transactionContext = parameters.Get<byte[]>("transactionContext");
+            var filePath = parameters.Get<string>("filePath");
+            
+            return new
             {
-                connection.Open();
-
-                transaction = connection.BeginTransaction();
-
-                connection.Query("[proc_create_document_version]", parameters,
-                    commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                var errorCode = parameters.Get<int>("errorCode");
-                var transactionContext = parameters.Get<byte[]>("transactionContext");
-                var filePath = parameters.Get<string>("filePath");
-
-                return new
-                {
-                    ErrorCode = errorCode,
-                    TransactionId = transactionContext,
-                    Transaction = transaction,
-                    DbConnection = connection,
-                    FilePath = filePath
-                };
-            }
-            catch (Exception ex)
-            {
-                // TODO: do logging here
-                throw;
-            }
-            finally
-            {
-                transaction?.Rollback();
-                connection.Close();
-            }        
+                ErrorCode = errorCode,
+                TransactionId = transactionContext,
+                Transaction = transaction,
+                DbConnection = connection,
+                FilePath = filePath
+            };
         }
         #endregion
 
