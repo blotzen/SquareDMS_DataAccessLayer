@@ -26,8 +26,8 @@ namespace SquareDMS_DataAccessLayer_Tests.DocumentTests
             var deletionResult = await _squareDbMsSql.DeleteDocumentAsync(1, 6);
 
             Assert.Equal(0, deletionResult.ErrorCode);
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(Right), Operation.Delete));
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(DocumentVersion), Operation.Delete));
+            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(Right), OperationType.Delete));
+            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(DocumentVersion), OperationType.Delete));
         }
 
         /// <summary>

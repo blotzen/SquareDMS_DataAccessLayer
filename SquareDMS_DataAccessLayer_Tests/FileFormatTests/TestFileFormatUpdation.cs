@@ -36,7 +36,7 @@ namespace SquareDMS_DataAccessLayer_Tests.FileFormatTests
             var creationResult = await _squareDbMsSql.UpdateFileFormatAsync(1, 1, extension: "PDFS");
 
             Assert.Equal(0, creationResult.ErrorCode);
-            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(FileFormat), Operation.Update));
+            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(FileFormat), OperationType.Update));
         }
 
         /// <summary>

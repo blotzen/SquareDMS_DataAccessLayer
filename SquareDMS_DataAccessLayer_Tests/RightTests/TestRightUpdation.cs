@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.RightTests
             var updationResult = await _squareDbMsSql.UpdateRightAsync(1, 4, 10, AccessLevel.Update);
 
             Assert.Equal(0, updationResult.ErrorCode);
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(Right), Operation.Update));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(Right), OperationType.Update));
         }
 
         /// <summary>

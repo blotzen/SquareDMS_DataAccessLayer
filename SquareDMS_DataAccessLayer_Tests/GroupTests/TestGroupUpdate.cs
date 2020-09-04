@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupTests
             var creationResult = await _squareDbMsSql.UpdateGroupAsync(1, 1, description: "Admins haben volle Rechte.");
 
             Assert.Equal(0, creationResult.ErrorCode);
-            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(Group), Operation.Update));
+            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(Group), OperationType.Update));
         }
 
         /// <summary>

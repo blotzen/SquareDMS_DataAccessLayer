@@ -7,7 +7,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using SquareDMS_DataAccessLayer.Entities;
 using SquareDMS_DataAccessLayer.ProcedureResults;
-
+using System.IO;
+using System.Transactions;
+using System.Data.Common;
+using System.Data.SqlTypes;
 
 namespace SquareDMS_DataAccessLayer
 {
@@ -62,7 +65,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdDocuments = parameters.Get<int>("createdDocuments");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Document), createdDocuments, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(Document), createdDocuments, OperationType.Create));
         }
 
         /// <summary>
@@ -126,7 +129,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var updatedDocuments = parameters.Get<int>("updatedDocuments");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Document), updatedDocuments, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(Document), updatedDocuments, OperationType.Update));
         }
 
         /// <summary>
@@ -163,9 +166,9 @@ namespace SquareDMS_DataAccessLayer
             var deletedDocVersions = parameters.Get<int>("deletedDocVersions");
             var deletedDocuments = parameters.Get<int>("deletedDocuments");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Right), deletedRights, Operation.Delete),
-                new Tuple<Type, int, Operation>(typeof(DocumentVersion), deletedDocVersions, Operation.Delete),
-                new Tuple<Type, int, Operation>(typeof(Document), deletedDocuments, Operation.Delete));
+            return new ManipulationResult(errorCode, new Operation(typeof(Right), deletedRights, OperationType.Delete),
+                new Operation(typeof(DocumentVersion), deletedDocVersions, OperationType.Delete),
+                new Operation(typeof(Document), deletedDocuments, OperationType.Delete));
         }
         #endregion
 
@@ -200,7 +203,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdDocumentTypes = parameters.Get<int>("createdDocumentTypes");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(DocumentType), createdDocumentTypes, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(DocumentType), createdDocumentTypes, OperationType.Create));
         }
 
         /// <summary>
@@ -258,7 +261,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var updatedDocumentTypes = parameters.Get<int>("updatedDocumentTypes");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(DocumentType), updatedDocumentTypes, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(DocumentType), updatedDocumentTypes, OperationType.Update));
         }
 
         /// <summary>
@@ -284,7 +287,97 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var deletedDocumentTypes = parameters.Get<int>("deletedDocumentTypes");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(DocumentType), deletedDocumentTypes, Operation.Delete));
+            return new ManipulationResult(errorCode, new Operation(typeof(DocumentType), deletedDocumentTypes, OperationType.Delete));
+        }
+        #endregion
+
+        #region DocumentVersion-Operations
+        /// <summary>
+        /// Creates a new FileFormat
+        /// </summary>
+        /// <returns>Return value with error Code</returns>
+        /// <exception cref="ArgumentNullException">FileFormat cant be null.</exception>
+        public ManipulationResult CreateDocumentVersionAsync(int userId, DocumentVersion docVersion)
+        {
+            if (docVersion is null)
+                throw new ArgumentNullException("docVersion", "Cant create null docVersion");
+
+            // do the prep work to insert the payload, await it.
+            var preparationResult = PreparePayloadInsert(userId, docVersion.DocumentId, docVersion.FileFormatId);
+
+            var filePath = preparationResult.FilePath;
+            var txContext = (byte[])preparationResult.TransactionId;
+
+            SqlFileStream sqlFileStream = new SqlFileStream(filePath, txContext, FileAccess.Write);
+
+            FileStream localFile = new FileStream(@"C:\Users\Franz\Desktop\tum-thesis-for-informatics-template.pdf", FileMode.Open, FileAccess.Read);
+
+            localFile.CopyTo(sqlFileStream, 4096);
+
+            preparationResult.Transaction.Commit();
+            preparationResult.DbConnection.Close();
+
+
+
+            return new ManipulationResult(0, new Operation(typeof(FileFormat), 0, OperationType.Create));
+        }
+
+        /// <summary>
+        /// Does the prep work, inserts a empty document version into the table and checks 
+        /// the paramters beforehand. Returns the open connection and the transaction.
+        /// </summary>
+        /// <returns>ErrorCode, TransactionId, Transaction, DbConnection, FilePath</returns>
+        private dynamic PreparePayloadInsert(int userId, int docId, int fileFormatId) 
+        {
+            DynamicParameters parameters = new DynamicParameters();
+
+            // Bug, see here: https://stackoverflow.com/questions/54557416/what-is-the-correct-usage-of-dynamicparameters-dapper-for-a-varbinary-datatype
+            var template_1 = Array.Empty<byte>();
+            var template_2 = string.Empty;
+
+            parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@fileFormatId", fileFormatId, DbType.Int32, direction: ParameterDirection.Input);
+
+            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output); // nicht genug Rechte oder FileFormat exisitert nicht oder 114 
+            parameters.Add("@transactionContext", template_1, DbType.Binary, direction: ParameterDirection.Output, size: 16);
+            parameters.Add("@filePath", template_2, DbType.String, direction: ParameterDirection.Output);
+
+            DbTransaction transaction = null;
+            SqlConnection connection = new SqlConnection(_connectionString);
+
+            try
+            {
+                connection.Open();
+
+                transaction = connection.BeginTransaction();
+
+                connection.Query("[proc_create_document_version]", parameters,
+                    commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                var errorCode = parameters.Get<int>("errorCode");
+                var transactionContext = parameters.Get<byte[]>("transactionContext");
+                var filePath = parameters.Get<string>("filePath");
+
+                return new
+                {
+                    ErrorCode = errorCode,
+                    TransactionId = transactionContext,
+                    Transaction = transaction,
+                    DbConnection = connection,
+                    FilePath = filePath
+                };
+            }
+            catch (Exception ex)
+            {
+                // TODO: do logging here
+                throw;
+            }
+            finally
+            {
+                transaction?.Rollback();
+                connection.Close();
+            }        
         }
         #endregion
 
@@ -317,7 +410,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdFileFormats = parameters.Get<int>("createdFileFormats");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(FileFormat), createdFileFormats, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(FileFormat), createdFileFormats, OperationType.Create));
         }
 
         /// <summary>
@@ -373,7 +466,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var updatedFileFormats = parameters.Get<int>("updatedFileFormats");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(FileFormat), updatedFileFormats, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(FileFormat), updatedFileFormats, OperationType.Update));
         }
 
         /// <summary>
@@ -399,7 +492,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var deletedFileFormats = parameters.Get<int>("deletedFileFormats");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(FileFormat), deletedFileFormats, Operation.Delete));
+            return new ManipulationResult(errorCode, new Operation(typeof(FileFormat), deletedFileFormats, OperationType.Delete));
         }
         #endregion
 
@@ -434,7 +527,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdGroups = parameters.Get<int>("createdGroups");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Group), createdGroups, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(Group), createdGroups, OperationType.Create));
         }
 
         /// <summary>
@@ -496,7 +589,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var manipulatedGroups = parameters.Get<int>("updatedGroups");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Group), manipulatedGroups, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(Group), manipulatedGroups, OperationType.Update));
         }
 
         /// <summary>
@@ -526,8 +619,8 @@ namespace SquareDMS_DataAccessLayer
             var deletedGroups = parameters.Get<int>("deletedGroups");    // either 1 or 0, cant delete multiple groups
 
             return new ManipulationResult(errorCode,
-                new Tuple<Type, int, Operation>(typeof(Right), deletedRights, Operation.Delete),
-                new Tuple<Type, int, Operation>(typeof(Group), deletedGroups, Operation.Delete));
+                new Operation(typeof(Right), deletedRights, OperationType.Delete),
+                new Operation(typeof(Group), deletedGroups, OperationType.Delete));
         }
         #endregion
 
@@ -561,7 +654,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdGroupMembers = parameters.Get<int>("createdGroupMembers");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(GroupMember), createdGroupMembers, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(GroupMember), createdGroupMembers, OperationType.Create));
         }
 
         /// <summary>
@@ -616,7 +709,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var deletedGroupMembers = parameters.Get<int>("deletedGroupMembers");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(GroupMember), deletedGroupMembers, Operation.Delete));
+            return new ManipulationResult(errorCode, new Operation(typeof(GroupMember), deletedGroupMembers, OperationType.Delete));
         }
         #endregion
 
@@ -653,7 +746,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdRights = parameters.Get<int>("createdRights");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Right), createdRights, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(Right), createdRights, OperationType.Create));
         }
 
         /// <summary>
@@ -708,7 +801,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var updatedRights = parameters.Get<int>("updatedRights");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Right), updatedRights, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(Right), updatedRights, OperationType.Update));
         }
 
         /// <summary>
@@ -735,7 +828,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var deletedRights = parameters.Get<int>("deletedRights");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(Right), deletedRights, Operation.Delete));
+            return new ManipulationResult(errorCode, new Operation(typeof(Right), deletedRights, OperationType.Delete));
         }
         #endregion
 
@@ -772,7 +865,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var createdUsers = parameters.Get<int>("createdUsers");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(User), createdUsers, Operation.Create));
+            return new ManipulationResult(errorCode, new Operation(typeof(User), createdUsers, OperationType.Create));
         }
 
         /// <summary>
@@ -842,7 +935,7 @@ namespace SquareDMS_DataAccessLayer
             var errorCode = parameters.Get<int>("errorCode");
             var updatedUsers = parameters.Get<int>("updatedUsers");
 
-            return new ManipulationResult(errorCode, new Tuple<Type, int, Operation>(typeof(User), updatedUsers, Operation.Update));
+            return new ManipulationResult(errorCode, new Operation(typeof(User), updatedUsers, OperationType.Update));
         }
 
         /// <summary>
@@ -872,8 +965,8 @@ namespace SquareDMS_DataAccessLayer
             var deletedGroupMembers = parameters.Get<int>("deletedGroupMembers");
 
             return new ManipulationResult(errorCode,
-                new Tuple<Type, int, Operation>(typeof(GroupMember), deletedGroupMembers, Operation.Delete),
-                new Tuple<Type, int, Operation>(typeof(User), deletedUsers, Operation.Delete));
+                new Operation(typeof(GroupMember), deletedGroupMembers, OperationType.Delete),
+                new Operation(typeof(User), deletedUsers, OperationType.Delete));
         }
         #endregion
 

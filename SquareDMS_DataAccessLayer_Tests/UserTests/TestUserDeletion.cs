@@ -25,8 +25,8 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.DeleteUserAsync(1, 4);
 
             Assert.Equal(0, updationResult.ErrorCode);
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(GroupMember), Operation.Delete));
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), Operation.Delete));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Delete));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), OperationType.Delete));
         }
 
         /// <summary>
@@ -38,8 +38,8 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.DeleteUserAsync(1, 2);
 
             Assert.Equal(127, updationResult.ErrorCode);
-            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(GroupMember), Operation.Delete));
-            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), Operation.Delete));
+            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Delete));
+            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), OperationType.Delete));
         }
 
         /// <summary>
@@ -51,8 +51,8 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.DeleteUserAsync(2, 4);
 
             Assert.Equal(10, updationResult.ErrorCode);
-            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(GroupMember), Operation.Delete));
-            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), Operation.Delete));
+            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Delete));
+            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), OperationType.Delete));
         }
     }
 }

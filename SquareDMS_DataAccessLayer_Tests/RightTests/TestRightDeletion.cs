@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.RightTests
             var deletionResult = await _squareDbMsSql.DeleteRightsAsync(1, 4, 11);
 
             Assert.Equal(0, deletionResult.ErrorCode);
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(Right), Operation.Delete));
+            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(Right), OperationType.Delete));
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace SquareDMS_DataAccessLayer_Tests.RightTests
             var deletionResult = await _squareDbMsSql.DeleteRightsAsync(2, 4, 11);
 
             Assert.Equal(10, deletionResult.ErrorCode);
-            Assert.Equal(0, deletionResult.ManipulatedAmount(typeof(Right), Operation.Delete));
+            Assert.Equal(0, deletionResult.ManipulatedAmount(typeof(Right), OperationType.Delete));
         }
     }
 }

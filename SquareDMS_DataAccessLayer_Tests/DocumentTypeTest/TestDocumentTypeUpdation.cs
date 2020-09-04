@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.DocumentTypeTest
             var updationResult = await _squareDbMsSql.UpdateDocumentTypeAsync(1, 2, name: "Skripte");
 
             Assert.Equal(0, updationResult.ErrorCode);
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(DocumentType), Operation.Update));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(DocumentType), OperationType.Update));
         }
 
         /// <summary>

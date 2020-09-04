@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.UpdateUserAsync(1, 2, userName: "Django");
 
             Assert.Equal(0, updationResult.ErrorCode);
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), Operation.Update));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), OperationType.Update));
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.UpdateUserAsync(2, 3, userName: "Django");
 
             Assert.Equal(15, updationResult.ErrorCode);
-            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), Operation.Update));
+            Assert.Equal(0, updationResult.ManipulatedAmount(typeof(User), OperationType.Update));
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var updationResult = await _squareDbMsSql.UpdateUserAsync(2, 2, userName: "Django");
 
             Assert.Equal(0, updationResult.ErrorCode);
-            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), Operation.Update));
+            Assert.Equal(1, updationResult.ManipulatedAmount(typeof(User), OperationType.Update));
         }
     }
 }

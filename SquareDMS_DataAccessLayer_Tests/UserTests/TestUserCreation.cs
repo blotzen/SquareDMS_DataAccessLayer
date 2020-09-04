@@ -31,7 +31,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(0, creationResult.ErrorCode);
-            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(0, creationResult.ErrorCode);
-            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(123, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(124, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(126, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 
             Assert.Equal(125, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
             var creationResult = await _squareDbMsSql.CreateUserAsync(2, user);
 
             Assert.Equal(10, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(User), OperationType.Create));
         }
     }
 }

@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var deletionResult = await _squareDbMsSql.DeleteGroupMemberAsync(1, 1, 1);
 
             Assert.Equal(0, deletionResult.ErrorCode);
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(GroupMember), Operation.Delete));
+            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(GroupMember), OperationType.Delete));
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var deletionResult = await _squareDbMsSql.DeleteGroupMemberAsync(2, 1, 1);
 
             Assert.Equal(10, deletionResult.ErrorCode);
-            Assert.Equal(0, deletionResult.ManipulatedAmount(typeof(GroupMember), Operation.Delete));
+            Assert.Equal(0, deletionResult.ManipulatedAmount(typeof(GroupMember), OperationType.Delete));
         }
     }
 }

@@ -6,7 +6,9 @@ namespace SquareDMS_DataAccessLayer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var db = new SquareDbMsSql("Server = 192.168.178.15; Database = Square_DMS; Integrated Security = True");
+
+            db.CreateDocumentVersionAsync(1, new Entities.DocumentVersion(1, 1, null));
         }
     }
 }

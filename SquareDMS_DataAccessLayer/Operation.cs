@@ -1,13 +1,26 @@
-﻿namespace SquareDMS_DataAccessLayer
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace SquareDMS_DataAccessLayer
 {
-    /// <summary>
-    /// Type of Operation
-    /// </summary>
-    public enum Operation
+    public class Operation
     {
-        Create,
-        Retrieve,
-        Update,
-        Delete
+        /// <summary>
+        /// Represents the result of a Operation. Show the affected entries
+        /// and the corresponding Entity.
+        /// </summary>
+        public Operation(Type entity, int affectedEntries, OperationType operationType)
+        {
+            Entity = entity;
+            AffectedEntries = affectedEntries;
+            OperationType = operationType;
+        }
+
+        public Type Entity { get; }
+
+        public int AffectedEntries { get; }
+
+        public OperationType OperationType { get; }
     }
 }

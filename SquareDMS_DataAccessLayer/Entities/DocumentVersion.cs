@@ -4,14 +4,10 @@ namespace SquareDMS_DataAccessLayer.Entities
 {
     public class DocumentVersion : IEntity
     {
-        public DocumentVersion(int docId, DateTime eventDateTime,
-            int versionNr, int fileFormatId, Guid guid, byte[] fileStreamData)
+        public DocumentVersion(int docId, int fileFormatId, byte[] fileStreamData)
         {
             DocumentId = docId;
-            EventDateTime = eventDateTime;
-            VersionNr = versionNr;
             FileFormatId = fileFormatId;
-            Guid = guid;
             FilestreamData = fileStreamData;
         }
 

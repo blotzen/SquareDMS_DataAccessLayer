@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupTests
             var deletionResult = await _squareDbMsSql.DeleteGroupAsync(1, 4);
 
             Assert.Equal(0, deletionResult.ErrorCode);
-            Assert.Equal(2, deletionResult.ManipulatedAmount(typeof(Right), Operation.Delete));
+            Assert.Equal(2, deletionResult.ManipulatedAmount(typeof(Right), OperationType.Delete));
         }
 
         /// <summary>

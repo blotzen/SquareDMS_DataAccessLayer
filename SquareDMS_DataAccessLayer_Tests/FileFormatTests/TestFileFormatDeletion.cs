@@ -25,7 +25,7 @@ namespace SquareDMS_DataAccessLayer_Tests.FileFormatTests
             var deletionResult = await _squareDbMsSql.DeleteFileFormatAsync(1, 2);
 
             Assert.Equal(0, deletionResult.ErrorCode);
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(FileFormat), Operation.Delete));
+            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(FileFormat), OperationType.Delete));
         }
 
         /// <summary>

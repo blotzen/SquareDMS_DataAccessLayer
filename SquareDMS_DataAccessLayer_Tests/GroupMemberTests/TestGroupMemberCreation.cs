@@ -27,7 +27,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var creationResult = await _squareDbMsSql.CreateGroupMemberAsync(1, groupMember);
 
             Assert.Equal(0, creationResult.ErrorCode);
-            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(GroupMember), Operation.Create));
+            Assert.Equal(1, creationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Create));
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var creationResult = await _squareDbMsSql.CreateGroupMemberAsync(1, groupMember);
 
             Assert.Equal(117, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Create));
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var creationResult = await _squareDbMsSql.CreateGroupMemberAsync(1, groupMember);
 
             Assert.Equal(113, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Create));
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var creationResult = await _squareDbMsSql.CreateGroupMemberAsync(1, groupMember);
 
             Assert.Equal(116, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Create));
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests
             var creationResult = await _squareDbMsSql.CreateGroupMemberAsync(2, groupMember);
 
             Assert.Equal(10, creationResult.ErrorCode);
-            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), Operation.Create));
+            Assert.Equal(0, creationResult.ManipulatedAmount(typeof(GroupMember), OperationType.Create));
         }
     }
 }
