@@ -23,8 +23,10 @@ namespace SquareDMS_DataAccessLayer.Entities
 
         public int FileFormatId { get; private set; }
 
-        public Guid Guid { get; private set; }
+        public byte[] FilestreamData { get; set; }
 
-        public byte[] FilestreamData { get; private set; }
+        public byte[] TransactionId { get; private set; }
+
+        public string FilePath { get; private set; }
     }
 }

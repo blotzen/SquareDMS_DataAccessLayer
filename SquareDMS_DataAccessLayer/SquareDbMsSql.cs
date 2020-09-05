@@ -12,6 +12,7 @@ using System.Transactions;
 using System.Data.Common;
 using System.Data.SqlTypes;
 using System.Threading;
+using System.Linq;
 
 namespace SquareDMS_DataAccessLayer
 {
@@ -310,7 +311,7 @@ namespace SquareDMS_DataAccessLayer
             try
             {
                 // do the prep work to insert the payload, await it.
-                prepResult = await PreparePayloadInsert(userId, docVersion.DocumentId, docVersion.FileFormatId);
+                prepResult = await PreparePayloadInsertAsync(userId, docVersion.DocumentId, docVersion.FileFormatId);
 
                 SqlFileStream sqlFileStream = new SqlFileStream(prepResult.FilePath, prepResult.TransactionId, FileAccess.Write);
 
@@ -320,7 +321,8 @@ namespace SquareDMS_DataAccessLayer
 
                 await prepResult.Transaction.CommitAsync();
 
-                return new ManipulationResult(prepResult.ErrorCode, new Operation(typeof(DocumentVersion), 1, OperationType.Create)); // TODO immer returnen aber mit errorcode wenn fehler?
+                return new ManipulationResult(prepResult.ErrorCode, new Operation(typeof(DocumentVersion), 
+                    prepResult.CreatedDocumentVersions, OperationType.Create)); // TODO immer returnen aber mit errorcode wenn fehler?
             }
             catch (Exception ex)
             {
@@ -335,11 +337,76 @@ namespace SquareDMS_DataAccessLayer
         }
 
         /// <summary>
+        /// Gets a specific document version metadata.
+        /// </summary>
+        /// <returns>Return value with error Code</returns>
+        public async Task<RetrievalResult<DocumentVersion>> RetrieveDocumentVersionAsync(int userId, int docVerId)
+        {
+            DynamicParameters parameters = new DynamicParameters();
+
+            parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docVerId", docVerId, DbType.Int32, direction: ParameterDirection.Input);
+
+            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
+
+            IEnumerable<DocumentVersion> documentVersions;
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    documentVersions = await connection.QueryAsync<DocumentVersion>("[proc_get_document_version]", parameters,
+                        commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                    // first or default (null) from enumeration
+                    var documentVersion = documentVersions.FirstOrDefault();
+
+                    // retrieve the payload and populate the documentVersion with it
+                    var payload = await RetrieveDocumentVersionPayloadAsync(documentVersion?.FilePath, documentVersion?.TransactionId);
+                    documentVersion.FilestreamData = payload;
+
+                    transaction.Commit();
+                }
+            }
+
+            return new RetrievalResult<DocumentVersion>(parameters.Get<int>("errorCode"), documentVersions);
+        }
+
+        /// <summary>
+        /// Gets the payload for a given document version.
+        /// </summary>
+        /// <returns>In case of an IO Error, null will be returned.</returns>
+        private async Task<byte[]> RetrieveDocumentVersionPayloadAsync(string filePath, byte[] transactionId)
+        {
+            if (filePath is null || transactionId is null)
+                return null;
+
+            try
+            {
+                using (var sqlFileStream = new SqlFileStream(filePath, transactionId, FileAccess.Read))
+                {
+                    var payload = new byte[sqlFileStream.Length];
+
+                    await sqlFileStream.ReadAsync(payload);
+
+                    return payload;
+                }
+            }
+            catch (Exception ex)
+            {
+                // log here
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Does the prep work, inserts a empty document version into the table and checks 
         /// the paramters beforehand. Returns the open connection and the uncommited transaction.
         /// </summary>
         /// <returns>ErrorCode, TransactionId, Transaction, DbConnection, FilePath</returns>
-        private async Task<dynamic> PreparePayloadInsert(int userId, int docId, int fileFormatId) 
+        private async Task<dynamic> PreparePayloadInsertAsync(int userId, int docId, int fileFormatId) 
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -351,7 +418,8 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@fileFormatId", fileFormatId, DbType.Int32, direction: ParameterDirection.Input);
 
-            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output); // nicht genug Rechte oder FileFormat exisitert nicht oder 114 
+            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add("@createdDocumentVersions", DbType.Int32, direction: ParameterDirection.Output);
             parameters.Add("@transactionContext", template_1, DbType.Binary, direction: ParameterDirection.Output, size: 16);
             parameters.Add("@filePath", template_2, DbType.String, direction: ParameterDirection.Output);
 
@@ -364,12 +432,14 @@ namespace SquareDMS_DataAccessLayer
                 commandType: CommandType.StoredProcedure, transaction: transaction);
 
             var errorCode = parameters.Get<int>("errorCode");
+            var createdDocumentVersions = parameters.Get<int>("createdDocumentVersions");
             var transactionContext = parameters.Get<byte[]>("transactionContext");
             var filePath = parameters.Get<string>("filePath");
             
             return new
             {
                 ErrorCode = errorCode,
+                CreatedDocumentVersions = createdDocumentVersions,
                 TransactionId = transactionContext,
                 Transaction = transaction,
                 DbConnection = connection,
