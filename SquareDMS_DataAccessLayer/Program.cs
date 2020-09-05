@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace SquareDMS_DataAccessLayer
 {
-    class Program
+    internal class Program
     {
-        static async System.Threading.Tasks.Task Main(string[] args)
+        private static async System.Threading.Tasks.Task Main(string[] args)
         {
             var file = File.ReadAllBytes(@"C:\Users\Administrator\Desktop\CompSci.pdf");
 

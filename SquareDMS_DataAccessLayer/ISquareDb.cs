@@ -23,16 +23,16 @@ namespace SquareDMS_DataAccessLayer
         /// Gets a document or multiple documents, depending on the given paramters.
         /// </summary>
         /// <returns>The documents and a errorCode.</returns>
-        Task<RetrievalResult<Document>> RetrieveDocumentsAsync(int userId, [Optional]int? maxAccessLevel,
-            [Optional]int? docId, [Optional]int? creator, [Optional]int? docType,
-            [Optional]string name, [Optional]bool? locked, [Optional]bool? discard);
+        Task<RetrievalResult<Document>> RetrieveDocumentsAsync(int userId, [Optional] int? maxAccessLevel,
+            [Optional] int? docId, [Optional] int? creator, [Optional] int? docType,
+            [Optional] string name, [Optional] bool? locked, [Optional] bool? discard);
 
         /// <summary>
         /// Updates a document. Locked doc can only be updated by the creator. An empty doc name is not permitted.
         /// </summary>
         /// <returns></returns>
-        Task<ManipulationResult> UpdateDocumentAsync(int userId, int docId, [Optional]int? docType,
-            [Optional]string name, [Optional]bool? locked, [Optional]bool? discard);
+        Task<ManipulationResult> UpdateDocumentAsync(int userId, int docId, [Optional] int? docType,
+            [Optional] string name, [Optional] bool? locked, [Optional] bool? discard);
 
         /// <summary>
         /// Deletes a document and its depending values like document-versions and Rights.
@@ -63,15 +63,15 @@ namespace SquareDMS_DataAccessLayer
         /// Admin and Users can retrieve all doc types.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        Task<RetrievalResult<DocumentType>> RetrieveDocumentTypeAsync(int userId, [Optional]int? docTypeId,
-           [Optional]string name, [Optional]string description);
+        Task<RetrievalResult<DocumentType>> RetrieveDocumentTypeAsync(int userId, [Optional] int? docTypeId,
+           [Optional] string name, [Optional] string description);
 
         /// <summary>
         /// Updates a Document Type. Only admin can update.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
         Task<ManipulationResult> UpdateDocumentTypeAsync(int userId, int docTypeId,
-           [Optional]string name, [Optional]string description);
+           [Optional] string name, [Optional] string description);
 
         /// <summary>
         /// Deletes a Document Type. Only admin can delete and only 
@@ -93,15 +93,15 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or multiple FileFormats depending on the paramters.
         /// </summary>
         /// <returns>Collection of FileFormats and ErrorCode</returns>
-        Task<RetrievalResult<FileFormat>> RetrieveFileFormatsAsync(int userId, [Optional]int? fileFormatId,
-           [Optional]string extension, [Optional]string description);
+        Task<RetrievalResult<FileFormat>> RetrieveFileFormatsAsync(int userId, [Optional] int? fileFormatId,
+           [Optional] string extension, [Optional] string description);
 
         /// <summary>
         /// Updates a FileFromat if the user is admin.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
         Task<ManipulationResult> UpdateFileFormatAsync(int userId, int fileFormatId,
-           [Optional]string extension, [Optional]string description);
+           [Optional] string extension, [Optional] string description);
 
         /// <summary>
         /// Deletes a file format, file format cant be used by any doc version.
@@ -122,15 +122,15 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or multiple Groups depending on the given params.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        Task<RetrievalResult<Group>> RetrieveGroupAsync(int userId, [Optional]int? groupId,
-           [Optional]string name, [Optional]string description, [Optional]bool? admin, [Optional]bool? creator);
+        Task<RetrievalResult<Group>> RetrieveGroupAsync(int userId, [Optional] int? groupId,
+           [Optional] string name, [Optional] string description, [Optional] bool? admin, [Optional] bool? creator);
 
         /// <summary>
         /// Updates a group. User has to be admin.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        Task<ManipulationResult> UpdateGroupAsync(int userId, int groupId, [Optional]string name,
-           [Optional]string description, [Optional]bool? admin, [Optional]bool? creator);
+        Task<ManipulationResult> UpdateGroupAsync(int userId, int groupId, [Optional] string name,
+           [Optional] string description, [Optional] bool? admin, [Optional] bool? creator);
 
         /// <summary>
         /// Deletes Group if it has no Members and no Rights use it. 
@@ -153,8 +153,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or more Group Members depending on the given paramters.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        Task<RetrievalResult<GroupMember>> RetrieveGroupMemberAsync(int userId, [Optional]int? groupId,
-           [Optional]int? memberId);
+        Task<RetrievalResult<GroupMember>> RetrieveGroupMemberAsync(int userId, [Optional] int? groupId,
+           [Optional] int? memberId);
 
         /// <summary>
         /// Deletes a group Member if the user is admin.
@@ -178,8 +178,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or more Rights depending on the given params.
         /// </summary>
         /// <returns>Collection of Rights and ErrorCode</returns>
-        Task<RetrievalResult<Right>> RetrieveRightsAsync(int userId, [Optional]int? groupId,
-           [Optional]int? docId);
+        Task<RetrievalResult<Right>> RetrieveRightsAsync(int userId, [Optional] int? groupId,
+           [Optional] int? docId);
 
         /// <summary>
         /// Updates a Right. Right has to exist and user has to be Admin.
@@ -210,17 +210,17 @@ namespace SquareDMS_DataAccessLayer
         /// <param name="userId">The user that issues the request.</param>
         /// <param name="retrieveUserId">Id of the user that is being looked for.</param>
         /// <returns>Result with errorCode.</returns>
-        Task<RetrievalResult<User>> RetrieveUserAsync(int userId, [Optional]int? retrieveUserId,
-           [Optional]string lastName, [Optional]string firstName, [Optional]string userName,
-           [Optional]string email, [Optional]bool? active);
+        Task<RetrievalResult<User>> RetrieveUserAsync(int userId, [Optional] int? retrieveUserId,
+           [Optional] string lastName, [Optional] string firstName, [Optional] string userName,
+           [Optional] string email, [Optional] bool? active);
 
         /// <summary>
         /// Updates a user given by the parameters.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        Task<ManipulationResult> UpdateUserAsync(int userId, int updateUserId, [Optional]string lastName,
-           [Optional]string firstName, [Optional]string userName, [Optional]string email,
-           [Optional]byte[] passwordHash, [Optional]bool? active);
+        Task<ManipulationResult> UpdateUserAsync(int userId, int updateUserId, [Optional] string lastName,
+           [Optional] string firstName, [Optional] string userName, [Optional] string email,
+           [Optional] byte[] passwordHash, [Optional] bool? active);
 
         /// <summary>
         /// Deletes a user if the requesting user is a admin and 

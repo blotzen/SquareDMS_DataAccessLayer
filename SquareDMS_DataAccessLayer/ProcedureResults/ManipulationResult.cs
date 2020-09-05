@@ -5,7 +5,7 @@ namespace SquareDMS_DataAccessLayer.ProcedureResults
 {
     public class ManipulationResult : IProcedureResult
     {
-        readonly List<Operation> _manipulatedEntities = new List<Operation>();
+        private readonly List<Operation> _manipulatedEntities = new List<Operation>();
 
         /// <summary>
         /// Result for manipulations. Contains which entities have been manipulated

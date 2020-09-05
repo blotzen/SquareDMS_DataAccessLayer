@@ -1,6 +1,6 @@
-﻿using System.Linq;
-using SquareDMS_DataAccessLayer;
+﻿using SquareDMS_DataAccessLayer;
 using SquareDMS_DataAccessLayer.Entities;
+using System.Linq;
 using Xunit;
 
 namespace SquareDMS_DataAccessLayer_Tests.RightTests

@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using SquareDMS_DataAccessLayer;
+﻿using SquareDMS_DataAccessLayer;
+using System.Linq;
 using Xunit;
 
 namespace SquareDMS_DataAccessLayer_Tests.GroupMemberTests

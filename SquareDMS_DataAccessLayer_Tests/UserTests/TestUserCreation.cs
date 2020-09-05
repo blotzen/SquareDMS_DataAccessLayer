@@ -41,7 +41,7 @@ namespace SquareDMS_DataAccessLayer_Tests.UserTests
         [Fact]
         public async void Admin_CreateUser_EmptyFirstName()
         {
-            var user = new User("Remi", null, "Gaillard", "rg@fun.fr",passwordHash, false);
+            var user = new User("Remi", null, "Gaillard", "rg@fun.fr", passwordHash, false);
 
             var creationResult = await _squareDbMsSql.CreateUserAsync(1, user);
 

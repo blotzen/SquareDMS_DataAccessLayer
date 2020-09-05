@@ -1,18 +1,15 @@
 ﻿using Dapper;
+using SquareDMS_DataAccessLayer.Entities;
+using SquareDMS_DataAccessLayer.ProcedureResults;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using SquareDMS_DataAccessLayer.Entities;
-using SquareDMS_DataAccessLayer.ProcedureResults;
-using System.IO;
-using System.Transactions;
-using System.Data.Common;
-using System.Data.SqlTypes;
-using System.Threading;
-using System.Linq;
 
 namespace SquareDMS_DataAccessLayer
 {
@@ -74,9 +71,9 @@ namespace SquareDMS_DataAccessLayer
         /// Gets a document or multiple documents, depending on the given paramters.
         /// </summary>
         /// <returns>The documents and a errorCode.</returns>
-        public async Task<RetrievalResult<Document>> RetrieveDocumentsAsync(int userId, [Optional]int? maxAccessLevel,
-            [Optional]int? docId, [Optional]int? creator, [Optional]int? docType,
-            [Optional]string name, [Optional]bool? locked, [Optional]bool? discard)
+        public async Task<RetrievalResult<Document>> RetrieveDocumentsAsync(int userId, [Optional] int? maxAccessLevel,
+            [Optional] int? docId, [Optional] int? creator, [Optional] int? docType,
+            [Optional] string name, [Optional] bool? locked, [Optional] bool? discard)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -107,8 +104,8 @@ namespace SquareDMS_DataAccessLayer
         /// Updates a document. Locked doc can only be updated by the creator. An empty doc name is not permitted.
         /// </summary>
         /// <returns></returns>
-        public async Task<ManipulationResult> UpdateDocumentAsync(int userId, int docId, [Optional]int? docType,
-            [Optional]string name, [Optional]bool? locked, [Optional]bool? discard)
+        public async Task<ManipulationResult> UpdateDocumentAsync(int userId, int docId, [Optional] int? docType,
+            [Optional] string name, [Optional] bool? locked, [Optional] bool? discard)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -213,8 +210,8 @@ namespace SquareDMS_DataAccessLayer
         /// Admin and Users can retrieve all doc types.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        public async Task<RetrievalResult<DocumentType>> RetrieveDocumentTypeAsync(int userId, [Optional]int? docTypeId,
-            [Optional]string name, [Optional]string description)
+        public async Task<RetrievalResult<DocumentType>> RetrieveDocumentTypeAsync(int userId, [Optional] int? docTypeId,
+            [Optional] string name, [Optional] string description)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -242,7 +239,7 @@ namespace SquareDMS_DataAccessLayer
         /// </summary>
         /// <returns>Result with errorCode.</returns>
         public async Task<ManipulationResult> UpdateDocumentTypeAsync(int userId, int docTypeId,
-            [Optional]string name, [Optional]string description)
+            [Optional] string name, [Optional] string description)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -306,34 +303,61 @@ namespace SquareDMS_DataAccessLayer
             if (docVersion is null)
                 throw new ArgumentNullException("docVersion", "Cant create null docVersion");
 
-            dynamic prepResult = null;
+            DynamicParameters parameters = new DynamicParameters();
 
-            try
+            // Bug, see here: https://stackoverflow.com/questions/54557416/what-is-the-correct-usage-of-dynamicparameters-dapper-for-a-varbinary-datatype
+            var template_1 = Array.Empty<byte>();
+            var template_2 = string.Empty;
+
+            parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docId", docVersion.DocumentId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@fileFormatId", docVersion.FileFormatId, DbType.Int32, direction: ParameterDirection.Input);
+
+            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add("@createdDocumentVersions", DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add("@transactionContext", template_1, DbType.Binary, direction: ParameterDirection.Output, size: 16);
+            parameters.Add("@filePath", template_2, DbType.String, direction: ParameterDirection.Output);
+
+            int errorCode = 0;
+            int createdDocumentVersions = 0;
+
+            using (var connection = new SqlConnection(_connectionString))
             {
-                // do the prep work to insert the payload, await it.
-                prepResult = await PreparePayloadInsertAsync(userId, docVersion.DocumentId, docVersion.FileFormatId);
+                await connection.OpenAsync();
 
-                SqlFileStream sqlFileStream = new SqlFileStream(prepResult.FilePath, prepResult.TransactionId, FileAccess.Write);
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    await connection.QueryAsync("[proc_create_document_version]", parameters,
+                        commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                // writes from byte[] to filestream-stream
-                await sqlFileStream.WriteAsync(docVersion.FilestreamData);
-                sqlFileStream.Close();
+                    errorCode = parameters.Get<int>("errorCode");
+                    createdDocumentVersions = parameters.Get<int>("createdDocumentVersions");
 
-                await prepResult.Transaction.CommitAsync();
+                    var transactionContext = parameters.Get<byte[]>("transactionContext");
+                    var filePath = parameters.Get<string>("filePath");
 
-                return new ManipulationResult(prepResult.ErrorCode, new Operation(typeof(DocumentVersion), 
-                    prepResult.CreatedDocumentVersions, OperationType.Create)); // TODO immer returnen aber mit errorcode wenn fehler?
+                    bool payloadWriteResult = false;
+
+                    // meta data insert successful
+                    if (errorCode == 0)
+                    {
+                        payloadWriteResult = await WriteDocumentVersionPayloadAsync(filePath, transactionContext, docVersion.FilestreamData);
+
+                        // payload insert successful
+                        if (payloadWriteResult)
+                        {
+                            await transaction.CommitAsync();
+                        }
+                        else
+                        {
+                            await transaction.RollbackAsync();
+                            errorCode = 129;
+                        }
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-                // log ex here
-                await prepResult.Transaction.RollbackAsync();
-                throw;
-            }
-            finally
-            {
-                await prepResult.DbConnection.CloseAsync();
-            }                    
+
+            return new ManipulationResult(errorCode, new Operation(typeof(DocumentVersion), createdDocumentVersions, OperationType.Create));
         }
 
         /// <summary>
@@ -343,6 +367,7 @@ namespace SquareDMS_DataAccessLayer
         public async Task<RetrievalResult<DocumentVersion>> RetrieveDocumentVersionAsync(int userId, int docVerId)
         {
             DynamicParameters parameters = new DynamicParameters();
+            int errorCode;
 
             parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
             parameters.Add("@docVerId", docVerId, DbType.Int32, direction: ParameterDirection.Input);
@@ -350,6 +375,7 @@ namespace SquareDMS_DataAccessLayer
             parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
 
             IEnumerable<DocumentVersion> documentVersions;
+            byte[] payload = null;
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -360,18 +386,28 @@ namespace SquareDMS_DataAccessLayer
                     documentVersions = await connection.QueryAsync<DocumentVersion>("[proc_get_document_version]", parameters,
                         commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                    // first or default (null) from enumeration
+                    // first or default(null) from enumeration
                     var documentVersion = documentVersions.FirstOrDefault();
+                    errorCode = parameters.Get<int>("errorCode");
 
-                    // retrieve the payload and populate the documentVersion with it
-                    var payload = await RetrieveDocumentVersionPayloadAsync(documentVersion?.FilePath, documentVersion?.TransactionId);
-                    documentVersion.FilestreamData = payload;
+                    // meta data retrieve successful
+                    if (errorCode == 0 && documentVersion != null)
+                    {
+                        // retrieve the payload and populate the documentVersion with it (null in case of error)
+                        payload = await RetrieveDocumentVersionPayloadAsync(documentVersion.FilePath, documentVersion.TransactionId);
 
-                    transaction.Commit();
+                        documentVersion.FilestreamData = payload;
+                    }
+
+                    transaction.Commit();   // always commit because its read only.
                 }
             }
 
-            return new RetrievalResult<DocumentVersion>(parameters.Get<int>("errorCode"), documentVersions);
+            // set errorCode if payload retrieve from fs failed
+            if (payload is null)
+                errorCode = 128;
+
+            return new RetrievalResult<DocumentVersion>(errorCode, documentVersions);
         }
 
         /// <summary>
@@ -380,9 +416,6 @@ namespace SquareDMS_DataAccessLayer
         /// <returns>In case of an IO Error, null will be returned.</returns>
         private async Task<byte[]> RetrieveDocumentVersionPayloadAsync(string filePath, byte[] transactionId)
         {
-            if (filePath is null || transactionId is null)
-                return null;
-
             try
             {
                 using (var sqlFileStream = new SqlFileStream(filePath, transactionId, FileAccess.Read))
@@ -402,49 +435,31 @@ namespace SquareDMS_DataAccessLayer
         }
 
         /// <summary>
-        /// Does the prep work, inserts a empty document version into the table and checks 
-        /// the paramters beforehand. Returns the open connection and the uncommited transaction.
+        /// 
         /// </summary>
-        /// <returns>ErrorCode, TransactionId, Transaction, DbConnection, FilePath</returns>
-        private async Task<dynamic> PreparePayloadInsertAsync(int userId, int docId, int fileFormatId) 
+        /// <param name="filePath"></param>
+        /// <param name="transactionId"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        private async Task<bool> WriteDocumentVersionPayloadAsync(string filePath, byte[] transactionId, byte[] payload)
         {
-            DynamicParameters parameters = new DynamicParameters();
+            if (filePath is null || transactionId is null || payload is null)
+                return false;
 
-            // Bug, see here: https://stackoverflow.com/questions/54557416/what-is-the-correct-usage-of-dynamicparameters-dapper-for-a-varbinary-datatype
-            var template_1 = Array.Empty<byte>();
-            var template_2 = string.Empty;
-
-            parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
-            parameters.Add("@fileFormatId", fileFormatId, DbType.Int32, direction: ParameterDirection.Input);
-
-            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
-            parameters.Add("@createdDocumentVersions", DbType.Int32, direction: ParameterDirection.Output);
-            parameters.Add("@transactionContext", template_1, DbType.Binary, direction: ParameterDirection.Output, size: 16);
-            parameters.Add("@filePath", template_2, DbType.String, direction: ParameterDirection.Output);
-
-            SqlConnection connection = new SqlConnection(_connectionString);
-
-            await connection.OpenAsync();
-            var transaction = await connection.BeginTransactionAsync();
-                
-            await connection.QueryAsync("[proc_create_document_version]", parameters, 
-                commandType: CommandType.StoredProcedure, transaction: transaction);
-
-            var errorCode = parameters.Get<int>("errorCode");
-            var createdDocumentVersions = parameters.Get<int>("createdDocumentVersions");
-            var transactionContext = parameters.Get<byte[]>("transactionContext");
-            var filePath = parameters.Get<string>("filePath");
-            
-            return new
+            try
             {
-                ErrorCode = errorCode,
-                CreatedDocumentVersions = createdDocumentVersions,
-                TransactionId = transactionContext,
-                Transaction = transaction,
-                DbConnection = connection,
-                FilePath = filePath
-            };
+                using (var sqlFileStream = new SqlFileStream(filePath, transactionId, FileAccess.Write))
+                {
+                    await sqlFileStream.WriteAsync(payload);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // log ex
+                return false;
+            }
         }
         #endregion
 
@@ -484,8 +499,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or multiple FileFormats depending on the paramters.
         /// </summary>
         /// <returns>Collection of FileFormats and ErrorCode</returns>
-        public async Task<RetrievalResult<FileFormat>> RetrieveFileFormatsAsync(int userId, [Optional]int? fileFormatId,
-            [Optional]string extension, [Optional]string description)
+        public async Task<RetrievalResult<FileFormat>> RetrieveFileFormatsAsync(int userId, [Optional] int? fileFormatId,
+            [Optional] string extension, [Optional] string description)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -512,7 +527,7 @@ namespace SquareDMS_DataAccessLayer
         /// </summary>
         /// <returns>Result with errorCode.</returns>
         public async Task<ManipulationResult> UpdateFileFormatAsync(int userId, int fileFormatId,
-            [Optional]string extension, [Optional]string description)
+            [Optional] string extension, [Optional] string description)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -601,8 +616,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or multiple Groups depending on the given params.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        public async Task<RetrievalResult<Group>> RetrieveGroupAsync(int userId, [Optional]int? groupId,
-            [Optional]string name, [Optional]string description, [Optional]bool? admin, [Optional]bool? creator)
+        public async Task<RetrievalResult<Group>> RetrieveGroupAsync(int userId, [Optional] int? groupId,
+            [Optional] string name, [Optional] string description, [Optional] bool? admin, [Optional] bool? creator)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -632,8 +647,8 @@ namespace SquareDMS_DataAccessLayer
         /// Updates a group. User has to be admin.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        public async Task<ManipulationResult> UpdateGroupAsync(int userId, int groupId, [Optional]string name,
-            [Optional]string description, [Optional]bool? admin, [Optional]bool? creator)
+        public async Task<ManipulationResult> UpdateGroupAsync(int userId, int groupId, [Optional] string name,
+            [Optional] string description, [Optional] bool? admin, [Optional] bool? creator)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -728,8 +743,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or more Group Members depending on the given paramters.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        public async Task<RetrievalResult<GroupMember>> RetrieveGroupMemberAsync(int userId, [Optional]int? groupId,
-            [Optional]int? memberId)
+        public async Task<RetrievalResult<GroupMember>> RetrieveGroupMemberAsync(int userId, [Optional] int? groupId,
+            [Optional] int? memberId)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -820,8 +835,8 @@ namespace SquareDMS_DataAccessLayer
         /// Gets one or more Rights depending on the given params.
         /// </summary>
         /// <returns>Collection of Rights and ErrorCode</returns>
-        public async Task<RetrievalResult<Right>> RetrieveRightsAsync(int userId, [Optional]int? groupId,
-            [Optional]int? docId)
+        public async Task<RetrievalResult<Right>> RetrieveRightsAsync(int userId, [Optional] int? groupId,
+            [Optional] int? docId)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -942,9 +957,9 @@ namespace SquareDMS_DataAccessLayer
         /// <param name="userId">The user that issues the request.</param>
         /// <param name="retrieveUserId">Id of the user that is being looked for.</param>
         /// <returns>Result with errorCode.</returns>
-        public async Task<RetrievalResult<User>> RetrieveUserAsync(int userId, [Optional]int? retrieveUserId,
-            [Optional]string lastName, [Optional]string firstName, [Optional]string userName, 
-            [Optional]string email, [Optional]bool? active)
+        public async Task<RetrievalResult<User>> RetrieveUserAsync(int userId, [Optional] int? retrieveUserId,
+            [Optional] string lastName, [Optional] string firstName, [Optional] string userName,
+            [Optional] string email, [Optional] bool? active)
         {
             DynamicParameters parameters = new DynamicParameters();
 
@@ -975,9 +990,9 @@ namespace SquareDMS_DataAccessLayer
         /// Updates a user given by the parameters.
         /// </summary>
         /// <returns>Result with errorCode.</returns>
-        public async Task<ManipulationResult> UpdateUserAsync(int userId, int updateUserId, [Optional]string lastName,
-            [Optional]string firstName, [Optional]string userName, [Optional]string email,
-            [Optional]byte[] passwordHash, [Optional]bool? active)
+        public async Task<ManipulationResult> UpdateUserAsync(int userId, int updateUserId, [Optional] string lastName,
+            [Optional] string firstName, [Optional] string userName, [Optional] string email,
+            [Optional] byte[] passwordHash, [Optional] bool? active)
         {
             DynamicParameters parameters = new DynamicParameters();
 

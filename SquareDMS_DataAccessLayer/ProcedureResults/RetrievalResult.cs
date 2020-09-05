@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using SquareDMS_DataAccessLayer.Entities;
+﻿using SquareDMS_DataAccessLayer.Entities;
+using System.Collections.Generic;
 
 namespace SquareDMS_DataAccessLayer.ProcedureResults
 {

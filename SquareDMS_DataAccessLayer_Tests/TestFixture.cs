@@ -1,11 +1,11 @@
-﻿using System;
-using SquareDMS_DataAccessLayer;
+﻿using SquareDMS_DataAccessLayer;
+using System;
 
 namespace SquareDMS_DataAccessLayer_Tests
 {
     public class TestFixture : IDisposable
     {
-        readonly SquareDbMsSql squareDbMsSql = new SquareDbMsSql(Globals.SqlConnectionstring);
+        private readonly SquareDbMsSql squareDbMsSql = new SquareDbMsSql(Globals.SqlConnectionstring);
 
         /// <summary>
         /// Constructor calls the ResetDbToTestValues() Function.
