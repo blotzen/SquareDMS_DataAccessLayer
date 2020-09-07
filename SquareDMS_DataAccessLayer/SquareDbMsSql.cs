@@ -292,11 +292,10 @@ namespace SquareDMS_DataAccessLayer
 
         #region DocumentVersion-Operations
         /// <summary>
-        /// Creates a new FileFormat. Uses the byte[] and filestream with System.IO.
+        /// Creates a new DocumentVersion. Uses the byte[] and filestream with System.IO.
         /// to place the file in the filestream area. Uses the SQL Server file handle.
         /// </summary>
         /// <returns>Return value with error Code</returns>
-        /// <exception cref="ArgumentNullException">FileFormat cant be null.</exception>
         /// <exception cref="Exception"></exception>
         public async Task<ManipulationResult> CreateDocumentVersionAsync(int userId, DocumentVersion docVersion)
         {
@@ -352,6 +351,7 @@ namespace SquareDMS_DataAccessLayer
                         {
                             await transaction.RollbackAsync();
                             errorCode = 129;
+                            createdDocumentVersions = 0; // when rolled back no documents have been created
                         }
                     }
                 }
@@ -383,7 +383,7 @@ namespace SquareDMS_DataAccessLayer
 
                 using (var transaction = await connection.BeginTransactionAsync())
                 {
-                    documentVersions = await connection.QueryAsync<DocumentVersion>("[proc_get_document_version]", parameters,
+                    documentVersions = await connection.QueryAsync<DocumentVersion>("[proc_get_document_version_s]", parameters,
                         commandType: CommandType.StoredProcedure, transaction: transaction);
 
                     // first or default(null) from enumeration
@@ -406,6 +406,34 @@ namespace SquareDMS_DataAccessLayer
             // set errorCode if payload retrieve from fs failed
             if (payload is null)
                 errorCode = 128;
+
+            return new RetrievalResult<DocumentVersion>(errorCode, documentVersions);
+        }
+
+        /// <summary>
+        /// Gets the document versions for the given parameter, checks the permissions.
+        /// Does not return the payload. This has to be done with <see cref="RetrieveDocumentVersionAsync(int, int)"/>
+        /// </summary>
+        /// <returns>Result with errorCode</returns>
+        public async Task<RetrievalResult<DocumentVersion>> RetrieveDocumentVersionsMetaDataAsync(int userId, [Optional] int? docVerId, [Optional] int? docId)
+        {
+            DynamicParameters parameters = new DynamicParameters();
+
+            parameters.Add("@userId", userId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docVerId", docVerId, DbType.Int32, direction: ParameterDirection.Input);
+            parameters.Add("@docId", docId, DbType.Int32, direction: ParameterDirection.Input);
+
+            parameters.Add("@errorCode", DbType.Int32, direction: ParameterDirection.Output);
+
+            IEnumerable<DocumentVersion> documentVersions;
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                documentVersions = await connection.QueryAsync<DocumentVersion>("[proc_get_document_version_s]", parameters,
+                    commandType: CommandType.StoredProcedure);
+            }
+
+            var errorCode = parameters.Get<int>("errorCode");
 
             return new RetrievalResult<DocumentVersion>(errorCode, documentVersions);
         }
@@ -435,12 +463,9 @@ namespace SquareDMS_DataAccessLayer
         }
 
         /// <summary>
-        /// 
+        /// Writes the given document payload.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="transactionId"></param>
-        /// <param name="payload"></param>
-        /// <returns></returns>
+        /// <returns>True if successful, false if not.</returns>
         private async Task<bool> WriteDocumentVersionPayloadAsync(string filePath, byte[] transactionId, byte[] payload)
         {
             if (filePath is null || transactionId is null || payload is null)

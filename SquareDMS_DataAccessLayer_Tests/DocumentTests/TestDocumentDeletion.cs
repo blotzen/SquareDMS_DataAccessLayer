@@ -27,7 +27,7 @@ namespace SquareDMS_DataAccessLayer_Tests.DocumentTests
 
             Assert.Equal(0, deletionResult.ErrorCode);
             Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(Right), OperationType.Delete));
-            Assert.Equal(1, deletionResult.ManipulatedAmount(typeof(DocumentVersion), OperationType.Delete));
+            Assert.Equal(2, deletionResult.ManipulatedAmount(typeof(DocumentVersion), OperationType.Delete));
         }
 
         /// <summary>

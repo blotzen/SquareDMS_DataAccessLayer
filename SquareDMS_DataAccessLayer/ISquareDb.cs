@@ -81,6 +81,29 @@ namespace SquareDMS_DataAccessLayer
         Task<ManipulationResult> DeleteDocumentTypeAsync(int userId, int docTypeId);
         #endregion
 
+        #region DocumentVersion-Operations
+        /// <summary>
+        /// Creates a new DocumentVersion. Uses the byte[] and filestream with System.IO.
+        /// to place the file in the filestream area. Uses the SQL Server file handle.
+        /// </summary>
+        /// <returns>Return value with error Code</returns>
+        /// <exception cref="Exception"></exception>
+        Task<ManipulationResult> CreateDocumentVersionAsync(int userId, DocumentVersion docVersion);
+
+        /// <summary>
+        /// Gets a specific document version metadata.
+        /// </summary>
+        /// <returns>Return value with error Code</returns>
+        Task<RetrievalResult<DocumentVersion>> RetrieveDocumentVersionAsync(int userId, int docVerId);
+
+        /// <summary>
+        /// Gets the document versions for the given parameter, checks the permissions.
+        /// Does not return the payload. This has to be done with <see cref="RetrieveDocumentVersionAsync(int, int)"/>
+        /// </summary>
+        /// <returns>Result with errorCode</returns>
+        Task<RetrievalResult<DocumentVersion>> RetrieveDocumentVersionsMetaDataAsync(int userId, [Optional] int? docVerId, [Optional] int? docId);
+        #endregion
+
         #region FileFormat-Operations
         /// <summary>
         /// Creates a new FileFormat
