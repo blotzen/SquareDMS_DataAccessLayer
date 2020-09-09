@@ -11,7 +11,7 @@
         /// Creates a new user
         /// </summary>
         public User(string lastName, string firstName, string userName,
-            string email, byte[] passwordHash, bool active)
+            string email, byte[] passwordHash, bool active = true)
         {
             LastName = lastName;
             FirstName = firstName;

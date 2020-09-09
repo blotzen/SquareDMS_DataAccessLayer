@@ -3,7 +3,7 @@
     public class DocumentType : IEntity
     {
         /// <summary>
-        /// Dapper default ctor.
+        /// Constructor for dapper
         /// </summary>
         public DocumentType() { }
 

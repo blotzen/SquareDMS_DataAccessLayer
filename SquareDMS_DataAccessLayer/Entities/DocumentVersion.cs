@@ -4,14 +4,17 @@ namespace SquareDMS_DataAccessLayer.Entities
 {
     public class DocumentVersion : IEntity
     {
+        /// <summary>
+        /// Constructor for dapper
+        /// </summary>
+        public DocumentVersion() { }
+
         public DocumentVersion(int docId, int fileFormatId, byte[] fileStreamData)
         {
             DocumentId = docId;
             FileFormatId = fileFormatId;
             FilestreamData = fileStreamData;
         }
-
-        public DocumentVersion() { }
 
         public int Id { get; private set; }
 

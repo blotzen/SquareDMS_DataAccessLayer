@@ -2,6 +2,9 @@
 {
     public class FileFormat : IEntity
     {
+        /// <summary>
+        /// Constructor for dapper
+        /// </summary>
         public FileFormat() { }
 
         public FileFormat(string extension, string description)

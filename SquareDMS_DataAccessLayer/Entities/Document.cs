@@ -2,6 +2,9 @@
 {
     public class Document : IEntity
     {
+        /// <summary>
+        /// Constructor for dapper
+        /// </summary>
         public Document() { }
 
         public Document(int creator, int docType,

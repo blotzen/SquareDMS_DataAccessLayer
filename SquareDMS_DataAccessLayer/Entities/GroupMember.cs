@@ -6,7 +6,7 @@
     public class GroupMember : IEntity
     {
         /// <summary>
-        /// Default constructor for dapper
+        /// Constructor for dapper
         /// </summary>
         public GroupMember() { }
 
@@ -19,8 +19,8 @@
             UserId = userId;
         }
 
-        public int GroupId { get; }
+        public int GroupId { get; private set; }
 
-        public int UserId { get; }
+        public int UserId { get; private set; }
     }
 }

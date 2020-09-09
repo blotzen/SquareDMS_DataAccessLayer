@@ -6,7 +6,7 @@
     public class Right : IEntity
     {
         /// <summary>
-        /// Creates an empty right.
+        /// Constructor for dapper
         /// </summary>
         public Right() { }
 

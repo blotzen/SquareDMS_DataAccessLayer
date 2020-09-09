@@ -6,13 +6,13 @@
     public class Group : IEntity
     {
         /// <summary>
-        /// Constructor for Dapper ORM.
+        /// Constructor for dapper
         /// </summary>
         public Group() { }
 
         /// <param name="admin">If its admin group</param>
         /// <param name="creator">If its creator group</param>
-        public Group(string name, string description, bool admin, bool creator)
+        public Group(string name, string description, bool admin = false, bool creator = false)
         {
             Name = name;
             Description = description;
