@@ -5,6 +5,11 @@ using System.Threading.Tasks;
 
 namespace SquareDMS_DataAccessLayer
 {
+    /// <summary>
+    /// This Interface contains all the necessary Methods
+    /// for interaction with the database. This interface is 
+    /// exposed by the Data Access Layer.
+    /// </summary>
     public interface ISquareDb
     {
 
